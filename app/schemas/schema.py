@@ -23,3 +23,7 @@ class PartyInput(BaseModel):
     location: str
     party_details: PartyDetails
 
+
+class PartyData(PartyInput):
+    num_product : Optional[int]
+

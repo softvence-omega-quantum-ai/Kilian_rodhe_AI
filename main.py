@@ -4,6 +4,7 @@ from fastapi.middleware.cors import CORSMiddleware
 import uvicorn as uv
 from app.api.v1.endpoints import generate_card
 from app.api.v1.endpoints import t_shirt_endpoint
+from app.api.v1.endpoints import generate_party
 
 app = FastAPI()
 
@@ -17,8 +18,8 @@ app.add_middleware(
 
 app.include_router(generate_card.router)
 app.include_router(t_shirt_endpoint.router)
-
+app.include_router(generate_party.router)
 
 
 if __name__ == "__main__":
-    uv.run("main:app", host="0.0.0.0", port=7050)
+    uv.run("main:app", host="127.0.0.1", port=7050, reload=True)
