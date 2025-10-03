@@ -137,6 +137,7 @@
 
 
 import google.generativeai as genai
+from sympy import product
 from tenacity import retry, stop_after_attempt, wait_exponential, retry_if_exception_type
 from google.api_core.exceptions import ServiceUnavailable
 import json
@@ -308,6 +309,31 @@ if __name__ == "__main__":
             "favorite_activities": ["Treasure Hunt", "Magic Show"]
         }
     )
+    product = {
+        "data": [
+            {
+                "id": "1",
+                "title": "Superhero Cape",
+                "description": "A cool superhero cape for kids.",
+                "price": 20,
+                "theme": "Superhero"
+            },
+            {
+                "id": "2",
+                "title": "Magic Wand",
+                "description": "A magical wand for performing tricks.",
+                "price": 15,
+                "theme": "Magic"
+            },
+            {
+                "id": "3",
+                "title": "Treasure Chest",
+                "description": "A treasure chest filled with goodies.",
+                "price": 30,
+                "theme": "Pirate"
+            }
+        ]
+    }
 
     party_plan_generator = PartyPlanGenerator()
     full_party_json = party_plan_generator.generate_full_party_json(party_input, product)

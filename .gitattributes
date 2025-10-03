@@ -1,0 +1,11 @@
+*.py text eol=crlf
+*.json text eol=crlf
+*.lock text eol=crlf
+__pycache__/  binary
+*.pyc         binary
+.env         binary
+.vscode/     binary
+instance/  binary
+migrations/ binary
+.envrc      binary
+.idea/      binary
