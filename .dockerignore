@@ -1,0 +1,30 @@
+# Python cache
+__pycache__/
+*.pyc
+*.pyo
+
+# Virtual environments
+.venv/
+env/
+venv/
+.env
+
+# Git
+.git/
+.gitignore
+
+# Logs and temp files
+*.log
+*.sqlite3
+*.db
+*.DS_Store
+*.swp
+*.egg-info/
+.idea/
+.vscode/
+
+# Node / frontend (if any)
+node_modules/
+
+# Docker overrides
+docker-compose.override.yml

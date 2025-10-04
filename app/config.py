@@ -5,10 +5,14 @@ from dotenv import load_dotenv
 import cloudinary
 from google import genai
 
-load_dotenv(override=True)
+
+
+# Load env
+BASE_DIR = Path(__file__).resolve().parent.parent
+load_dotenv(BASE_DIR / ".env", override=True)
+
 
 GEMINI_API_KEY = os.getenv("GEMINI_API_KEY")
-
 # Initialize Google GenAI client (Gemini)
 GENAI_CLIENT = genai.Client(api_key=GEMINI_API_KEY)
 
