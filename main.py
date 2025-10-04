@@ -38,6 +38,7 @@ async def lifespan(app: FastAPI):
     
     print("Startup complete.")
     yield
+    
 
 app = FastAPI(lifespan=lifespan)
 app.add_middleware(

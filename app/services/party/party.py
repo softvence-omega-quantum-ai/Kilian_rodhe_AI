@@ -243,7 +243,7 @@ class PartyPlanGenerator:
     def generate_youtube_links(self, theme: str, age: int) -> List[dict]:
         """Fetch YouTube music/movie links for the party."""
         try:
-            query = f"fun party music/movie for age {age} with theme {theme}"
+            query = f"fun party music/song for age {age} with theme {theme}"
             videos = search_youtube_videos(query, max_results=5)
             return videos
         except Exception as e:
