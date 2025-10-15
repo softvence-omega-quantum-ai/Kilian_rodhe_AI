@@ -16,9 +16,10 @@ logger = get_logger(__name__)
 
 class TShirt:
 
-    def __init__(self,tshirt_type, tshirt_size, gender, age, theme, color, message = None):
+    def __init__(self,tshirt_type, tshirt_size,apparel_type, gender, age, theme, color, message = None):
         self.tshirt_type = tshirt_type
         self.tshirt_size = tshirt_size
+        self.apparel_type = apparel_type
         self.gender = gender
         self.age = age
         self.theme = theme
@@ -103,7 +104,7 @@ class TShirt:
                 {
                     "parts": [
                         {"inline_data": upload_image(generated_design)},
-                        {"text": SHIRT_MOCKUP_PROMPT.format(tshirt_color=self.color, tshirt_size=self.tshirt_size, age=self.age)}
+                        {"text": SHIRT_MOCKUP_PROMPT.format(tshirt_color=self.color, tshirt_size=self.tshirt_size, age=self.age,apparel_type=self.apparel_type, gender=self.gender)}
                     ]
                 }
             ]

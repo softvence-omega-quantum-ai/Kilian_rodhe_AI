@@ -42,7 +42,7 @@ MODEL_NAME = "gemini-2.5-flash-image-preview"
 PRODUCT_MODEL = "gemini-2.5-flash"
 TEMPERATURE = 1.0
 GENERATED_IMG_PATH = Path("data")
-PRODUCT_API = "https://mkasraoui-server.onrender.com/products"
+PRODUCT_API = "https://api.mafetefacile.fr/products"
 
 # Prompt
 IMAGE_ANALYSIS_PROMPT = """
@@ -102,24 +102,29 @@ IMAGE_ANALYSIS_PROMPT = """
     """
 
 
-SHIRT_MOCKUP_PROMPT = """
-    Create a realistic, professional t-shirt mockup for showcasing how the uploaded artwork will look when printed.
+SHIRT_MOCKUP_PROMPT = SHIRT_MOCKUP_PROMPT = """
+    Create a realistic, professional product mockup showcasing how the uploaded artwork will appear when printed on the selected apparel.
 
     Requirements:
-    - Use the **uploaded image** as the design to be printed on the t-shirt (do not recreate or modify the artwork).
-    - T-shirt color: {tshirt_color}
-    - T-shirt size: {tshirt_size}
+    - Apparel type: {apparel_type} (e.g., T-shirt, Sweatshirt, Hoodie, Tank Top)
+    - Apparel color: {tshirt_color}
+    - Apparel size: {tshirt_size}
     - Intended age group: {age} (e.g., child, teen, adult)
+    - Gender: {gender} (e.g., male, female, unisex)
+    - Use the **uploaded image** as the design to be printed on the apparel (do not recreate, modify, or reposition the artwork).
 
     Mockup Specifications:
-    - The uploaded artwork must appear **naturally printed** on the t-shirt fabric (not floating or pasted).
-    - Show realistic fabric folds, shadows, and highlights to emphasize the print placement.
-    - Ensure the uploaded artwork scales properly to the t-shirt size without distortion.
-    - Use a plain, minimal background to keep focus on the t-shirt itself.
-    - Present the mockup in a clean, professional product-photo style, suitable for an online store showcase.
+    - The uploaded artwork must appear **naturally printed** on the fabric of the specified apparel type (not floating or pasted).
+    - Do **not** include any human models, mannequins, hangers, or background props — show only the apparel item itself.
+    - Display the apparel laid flat or presented as a standalone 3D product view.
+    - Include realistic fabric texture, folds, lighting, and shadows to emphasize natural print placement.
+    - Ensure the design scales properly to the apparel size, gender, and type without distortion.
+    - Use a **plain white background** (no gradients or scenery) to keep full focus on the apparel.
+    - Present the mockup in a clean, professional, store-ready product photo style.
 
-    ⚠️ Only generate the mockup of the t-shirt with the uploaded image printed — do not include duplicate designs, separate posters, or additional product variations.
+    ⚠️ Only generate the mockup of the specified apparel with the uploaded image printed on it — do not include duplicate designs, extra variations, or unrelated products.
     """
+
 
 
 PARTY_PLANNER_PROMPT = """

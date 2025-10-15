@@ -32,6 +32,7 @@ router = APIRouter()
 async def t_shirt_generate(
     t_shirt_type: str = Form(..., description="Type of t-shirt (Adult or child)"),
     t_shirt_size: str = Form(..., description="Size of the t-shirt (e.g., S, M, L, XL)"),
+    apparel_type: str = Form(..., description="Type of apparel (e.g., shirt, t-shirt, hoodie)"),
     gender: str = Form(..., description="Intended gender fit for the t-shirt (e.g., male, female"),
     t_shirt_color: str = Form(..., description="Base color of the t-shirt (e.g., black, white, red)"),
     age: int = Form(..., description="Age of the target wearer (used for style/fit adjustments)"),
@@ -44,6 +45,7 @@ async def t_shirt_generate(
     t_shirt = TShirt(
         tshirt_type=t_shirt_type,
         tshirt_size=t_shirt_size,
+        apparel_type=apparel_type,
         gender=gender,
         age=age,
         theme=t_shirt_theme,
