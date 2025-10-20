@@ -14,7 +14,7 @@ wheels/
 # Folders
 temp/
 logs
-notebooks
+notebook
 
 uv.lock
 

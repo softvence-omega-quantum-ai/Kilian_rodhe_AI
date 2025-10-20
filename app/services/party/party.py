@@ -137,20 +137,22 @@ class PartyPlanGenerator:
                 theme=party_input.party_details.theme,   # ✅ fixed
                 age=party_input.person_age
             )
+            
+            filtered_data = filter_data(product, party_input.budget)
 
             # 3️⃣ Detailed Gift Suggestions
             gifts_json = self.suggested_gifts(
-                product_list=party_json.get("🎁 Suggested Gifts", []),
+                product_list=filtered_data,
                 suggested_gifts=suggested_gifts_list,
                 top_n=len(suggested_gifts_list),
             )
             logger.info(f"Detailed Gifts JSON: {gifts_json}")
 
-            filtered_data = filter_data(product["data"], party_input.budget)
+            
             
             return {
                 "party_plan": new_party_ideas,
-                "suggested_gifts": filtered_data,
+                "suggested_gifts": gifts_json,
                 "adventure_song_movie_links": music_links
             }
 

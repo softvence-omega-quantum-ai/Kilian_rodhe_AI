@@ -25,4 +25,5 @@ dependencies = [
     "tenacity>=9.1.2",
     "uvicorn>=0.37.0",
     "langchain-openai>=0.3.35",
+    "ipykernel>=7.0.1",
 ]

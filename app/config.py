@@ -42,7 +42,7 @@ MODEL_NAME = "gemini-2.5-flash-image-preview"
 PRODUCT_MODEL = "gemini-2.5-flash"
 TEMPERATURE = 1.0
 GENERATED_IMG_PATH = Path("data")
-PRODUCT_API = "https://api.mafetefacile.fr/products"
+PRODUCT_API = "https://api.mafetefacile.fr/affiliate-product"
 
 # Prompt
 IMAGE_ANALYSIS_PROMPT = """
@@ -154,19 +154,31 @@ PRODUCT_PROMPT = """
     1. Carefully read the provided `product_json`.
     2. Read the `suggested_gifts` list.
     3. Compare each product against the `suggested_gifts` and **rank them by relevance/similarity**.
-       - Consider title, description, theme, and any other relevant attributes.
-    4. Return ONLY the `id` values of the top {top_n} most relevant products.
+       - Consider title, price, average rating, or any other relevant attributes.
+    4. Return ONLY the top {top_n} most relevant products with their `id`, `title`, and `link`.
     5. If fewer than {top_n} products match, return only the available ones.
     6. Output must be in **valid JSON format** with this structure:
     {{
-      "product_ids": ["id1", "id2", ... up to {top_n}]
+      "products": [
+        {{
+          "id": "id1",
+          "title": "title1",
+          "link": "link1"
+        }},
+        {{
+          "id": "id2",
+          "title": "title2",
+          "link": "link2"
+        }}
+        ... up to {top_n}
+      ]
     }}
 
     ⚠️ Rules:
     - Do not return any extra explanation or text.
     - If no product matches, return:
     {{
-      "product_ids": []
+      "products": []
     }}
 
     ---
@@ -176,6 +188,7 @@ PRODUCT_PROMPT = """
 
     ### suggested_gifts:
     {suggested_gifts}
-    """
+"""
+
 
 

@@ -78,22 +78,16 @@ def request_product(url):
         raise ValueError(f"Failed to fetch product. Status code: {response.status_code}")
 
 
-
 def filter_data(data, price):
-
     filtered_items = [
         {
-            "id" : item["id"],
+            "id": item["id"],
             "title": item["title"],
-            "description": item["description"],
-            "product_type": item["product_type"],
-            "age_range": item["age_range"],
+            "price": item["price"],
             "avg_rating": item["avg_rating"],
-            "theme": item["theme"],
-            "price": item["price"]
+            "link": item["link"]
         }
-        for item in data["gifts"]
+        for item in data["data"]["items"]
         if item["price"] <= price
     ]
     return filtered_items
-
