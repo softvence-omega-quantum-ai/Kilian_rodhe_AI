@@ -30,7 +30,9 @@ jobs:
           key: ${{ secrets.SERVER_SSH_KEY }}
           port: ${{ secrets.SERVER_SSH_PORT }}
           script: |
-            docker pull ${{ secrets.DOCKERHUB_USERNAME }}/partyplane:latest
             cd /root/partypalneAI/PartyPlaneGenerator
+            git fetch origin main
+            git reset --hard origin/main
             docker compose down
+            docker compose build --no-cache
             docker compose up -d

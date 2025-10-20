@@ -70,7 +70,6 @@ def delete_file(file_path):
 
 def request_product(url):
     response = requests.get(url)
-
     if response.status_code == 200:
         product = response.json()
         return product
