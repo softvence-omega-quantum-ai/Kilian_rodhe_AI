@@ -1,4 +1,4 @@
-# PartyPlaneGenerator
+# PartyPlaneGenerator (2025)
 
 Generate personalized birthday invitation cards, custom t-shirt designs, and AI-powered party plans using FastAPI, Google Generative AI, and image processing.
 
@@ -22,6 +22,7 @@ Generate personalized birthday invitation cards, custom t-shirt designs, and AI-
 ## Installation & Setup
 
 ### Prerequisites
+
 - Python 3.8+
 - Google Generative AI API key
 - Cloudinary account credentials
@@ -29,18 +30,21 @@ Generate personalized birthday invitation cards, custom t-shirt designs, and AI-
 ### Installation Steps
 
 1. **Clone the repository**:
+
    ```bash
    git clone <repo-url>
    cd PartyPlaneGenerator
    ```
 
 2. **Install dependencies**:
+
    ```bash
    pip install -r requirements.txt
    ```
 
 3. **Environment Configuration**:
    Create a `.env` file in the root directory:
+
    ```env
    GEMINI_API_KEY=your_gemini_api_key
    CLOUDINARY_CLOUD_NAME=your_cloud_name
@@ -49,6 +53,7 @@ Generate personalized birthday invitation cards, custom t-shirt designs, and AI-
    ```
 
 4. **Run the application**:
+
    ```bash
    uvicorn main:app --reload
    ```
@@ -66,6 +71,7 @@ Generate personalized birthday invitation cards, custom t-shirt designs, and AI-
 **Description**: Generates personalized birthday invitation cards with AI-generated text and images.
 
 **Request Body**:
+
 ```json
 {
   "theme": "Football lover",
@@ -81,6 +87,7 @@ Generate personalized birthday invitation cards, custom t-shirt designs, and AI-
 ```
 
 **Response**:
+
 ```json
 {
   "invitation_text": "Generated invitation text...",
@@ -100,6 +107,7 @@ Generate personalized birthday invitation cards, custom t-shirt designs, and AI-
 **Description**: Creates custom t-shirt designs and mockups based on user specifications.
 
 **Request**: Form Data
+
 - `t_shirt_type` (required): Type of t-shirt (Adult or child)
 - `t_shirt_size` (required): Size (S, M, L, XL)
 - `gender` (required): Gender fit (male, female)
@@ -110,6 +118,7 @@ Generate personalized birthday invitation cards, custom t-shirt designs, and AI-
 - `img_file` (optional): Image file for design reference
 
 **Response**:
+
 ```json
 {
   "generated_design_url": "https://cloudinary.com/design-url",
@@ -126,6 +135,7 @@ Generate personalized birthday invitation cards, custom t-shirt designs, and AI-
 **Description**: Generates comprehensive party plans with gift suggestions and product recommendations.
 
 **Request Body**:
+
 ```json
 {
   "person_name": "John",
@@ -143,6 +153,7 @@ Generate personalized birthday invitation cards, custom t-shirt designs, and AI-
 ```
 
 **Response**:
+
 ```json
 {
   "party_plan": {
@@ -191,16 +202,17 @@ PartyPlaneGenerator/
 
 ### Environment Variables
 
-| Variable | Description | Required |
-|----------|-------------|----------|
-| `GEMINI_API_KEY` | Google Generative AI API key | Yes |
-| `CLOUDINARY_CLOUD_NAME` | Cloudinary cloud name | Yes |
-| `CLOUDINARY_API_KEY` | Cloudinary API key | Yes |
-| `CLOUDINARY_API_SECRET` | Cloudinary API secret | Yes |
+| Variable                | Description                  | Required |
+| ----------------------- | ---------------------------- | -------- |
+| `GEMINI_API_KEY`        | Google Generative AI API key | Yes      |
+| `CLOUDINARY_CLOUD_NAME` | Cloudinary cloud name        | Yes      |
+| `CLOUDINARY_API_KEY`    | Cloudinary API key           | Yes      |
+| `CLOUDINARY_API_SECRET` | Cloudinary API secret        | Yes      |
 
 ### Application Settings
 
 Key configuration constants in `app/config.py`:
+
 - `MODEL_NAME`: "gemini-2.5-flash-image-preview"
 - `PRODUCT_MODEL`: "gemini-2.5-flash"
 - `TEMPERATURE`: 1.0
@@ -209,6 +221,7 @@ Key configuration constants in `app/config.py`:
 ## Error Handling
 
 The API implements comprehensive error handling:
+
 - **400**: Bad Request (invalid file types, missing files)
 - **404**: Not Found (file not found)
 - **500**: Internal Server Error (AI generation failures, processing errors)
@@ -218,6 +231,7 @@ Retry logic is implemented for AI API calls with exponential backoff.
 ## Logging
 
 Application logs are stored in the `logs/` directory with timestamps. Logs include:
+
 - Request processing information
 - AI generation status
 - Error details and stack traces
@@ -226,16 +240,19 @@ Application logs are stored in the `logs/` directory with timestamps. Logs inclu
 ## Development
 
 ### Running in Development Mode
+
 ```bash
 uvicorn main:app --reload --host 0.0.0.0 --port 8000
 ```
 
 ### Testing
+
 The application includes test files and sample data in the `data/` directory for development and testing purposes.
 
 ## Deployment
 
 The application is configured for production deployment with:
+
 - CORS middleware for cross-origin requests
 - Async request handling
 - Background task processing
