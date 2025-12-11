@@ -9,6 +9,7 @@ from app.utils.logger import get_logger
 from app.schemas.schema import PartyInput
 from app.services.party.adventure_list import search_youtube_videos
 from app.utils.helper import filter_data
+from app.services.recommendation import RecommendationEngine
 
 logger = get_logger(__name__)
 
@@ -73,31 +74,33 @@ class PartyPlanGenerator:
             raise e
 
 
-    def suggested_gifts(self, product_list: List[str], suggested_gifts: List[str], top_n: int):
-        """Generate detailed gift info JSON using AI."""
+    def suggested_gifts(self, party_input: PartyInput, top_n: int = 20):
+        """
+        Generate gift recommendations using AI-powered recommendation engine.
+        Recommends top_n products based on party theme and activities.
+        If insufficient relevant products, adds random products as fallback.
+        """
         try:
-            gifts_prompt = [
-                {
-                    "parts": [
-                        {"text": PRODUCT_PROMPT.format(
-                            product_json=product_list,
-                            suggested_gifts=suggested_gifts,
-                            top_n=top_n
-                        )}
-                    ]
-                }
-            ]
-            print("gift_prompt--------------------",gifts_prompt)
-            logger.info("Generating detailed gift list...")
-            client, config = self.model_client()
-            print("prompt--------------------",gifts_prompt)
-            response = self._make_api_call(client, PRODUCT_MODEL, gifts_prompt, config)
+            logger.info(f"Generating gift suggestions for theme: {party_input.party_details.theme}")
             
+            # Use the RecommendationEngine to get AI-powered recommendations
+            engine = RecommendationEngine()
             
-            print("api response--------------------------",response)
-            raw_text = response.text.strip()
-            gifts_json = json.loads(raw_text)
-            return gifts_json
+            party_details_dict = {
+                "theme": party_input.party_details.theme,
+                "favorite_activities": party_input.party_details.favorite_activities
+            }
+            
+            recommendations = engine.recommend_products(
+                theme=party_input.party_details.theme,
+                party_details=party_details_dict,
+                limit=top_n
+            )
+            
+            logger.info(f"Generated {recommendations['recommendations_count']} gift recommendations")
+            logger.info(f"Used fallback: {recommendations['has_random_fallback']}")
+            
+            return recommendations["recommendations"]
 
         except Exception as e:
             logger.error(f"Error in suggested_gifts: {e}")
@@ -108,8 +111,20 @@ class PartyPlanGenerator:
     def generate_youtube_links(self, theme: str, age: int) -> List[dict]:
         """Fetch YouTube music/movie links for the party."""
         try:
-            query = f"fun party music/song for age {age} with theme {theme}"
+            # Build a more specific query for better results
+            query = f"{theme} party music songs for kids age {age}"
+            logger.info(f"Searching YouTube videos with query: {query}")
+            
             videos = search_youtube_videos(query, max_results=5)
+            
+            if not videos:
+                logger.warning(f"No YouTube videos found for theme: {theme}, age: {age}")
+                # Try with a simpler query as fallback
+                logger.info("Trying fallback query...")
+                fallback_query = f"{theme} party music"
+                videos = search_youtube_videos(fallback_query, max_results=5)
+            
+            logger.info(f"Found {len(videos)} YouTube videos")
             return videos
         except Exception as e:
             logger.error(f"Error in generate_youtube_links: {e}")
@@ -124,7 +139,7 @@ class PartyPlanGenerator:
         try:
             # 1️⃣ AI Party Plan
             party_json, suggested_gifts_list = self.generate_party_plan(party_input)
-            print("gfparty--------------------",suggested_gifts_list)
+            # print("gfparty--------------------",suggested_gifts_list)
            
             logger.info(f"Party Plan JSON: {party_json}")
             
@@ -141,23 +156,20 @@ class PartyPlanGenerator:
                 theme=party_input.party_details.theme,   # ✅ fixed
                 age=party_input.person_age
             )
-            
-            filtered_data = filter_data(product, party_input.budget)
 
-            # 3️⃣ Detailed Gift Suggestions
-            gifts_json = self.suggested_gifts(
-                product_list=filtered_data,
-                suggested_gifts=suggested_gifts_list,
-                top_n=len(suggested_gifts_list),
+            # 3️⃣ AI-Powered Gift Recommendations (20 products with fallback to random)
+            gifts_recommendations = self.suggested_gifts(
+                party_input=party_input,
+                top_n=6
             )
-            print("giftjson---------------------",gifts_json)
-            logger.info(f"Detailed Gifts JSON: {gifts_json}")
+            # print("giftjson---------------------",gifts_recommendations)
+            logger.info(f"Detailed Gifts Recommendations: {gifts_recommendations}")
 
             
             
             return {
                 "party_plan": new_party_ideas,
-                "suggested_gifts": gifts_json,
+                "suggested_gifts": gifts_recommendations,
                 "adventure_song_movie_links": music_links
             }
 
