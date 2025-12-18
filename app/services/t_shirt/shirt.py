@@ -16,15 +16,8 @@ logger = get_logger(__name__)
 
 class TShirt:
 
-    def __init__(self,tshirt_type, tshirt_size,apparel_type, gender, age, theme, color, message = None):
-        self.tshirt_type = tshirt_type
-        self.tshirt_size = tshirt_size
-        self.apparel_type = apparel_type
-        self.gender = gender
-        self.age = age
-        self.theme = theme
-        self.color = color
-        self.message = message
+    def __init__(self, prompt):
+        self.prompt = prompt
 
 
     ## model
@@ -67,7 +60,7 @@ class TShirt:
                     {
                         "parts": [
                             {"inline_data": upload_image(ref_img_path)},
-                            {"text": IMAGE_ANALYSIS_PROMPT.format(tshirt_type=self.tshirt_type, gender=self.gender, age=self.age, theme=self.theme, message=self.message, color=self.color)}
+                            {"text": IMAGE_ANALYSIS_PROMPT.format(prompt=self.prompt)}
                         ]
                     }
                 ]
@@ -76,7 +69,7 @@ class TShirt:
                 t_shirt_content = [
                     {
                         "parts": [
-                            {"text": IMAGE_ANALYSIS_PROMPT.format(tshirt_type=self.tshirt_type, gender=self.gender, age=self.age, theme=self.theme, message=self.message, color=self.color)}
+                            {"text": IMAGE_ANALYSIS_PROMPT.format(prompt=self.prompt)}
                         ]
                     }
                 ]
@@ -85,11 +78,6 @@ class TShirt:
             logger.info("Generating t-shirt design...")
             client, config = self.model_client()
 
-            # response = client.models.generate_content(
-            #     model=MODEL_NAME,
-            #     contents=t_shirt_content,
-            #     config=config
-            # )
             response = self._make_api_call(client, MODEL_NAME, t_shirt_content, config)
             logger.info("T-shirt design generated successfully.")
             return response
@@ -104,7 +92,7 @@ class TShirt:
                 {
                     "parts": [
                         {"inline_data": upload_image(generated_design)},
-                        {"text": SHIRT_MOCKUP_PROMPT.format(tshirt_color=self.color, tshirt_size=self.tshirt_size, age=self.age,apparel_type=self.apparel_type, gender=self.gender)}
+                        {"text": SHIRT_MOCKUP_PROMPT.format(prompt=self.prompt)}
                     ]
                 }
             ]
@@ -113,11 +101,6 @@ class TShirt:
             logger.info("Generating t-shirt mockup...")
             client, config = self.model_client()
 
-            # response = client.models.generate_content(
-            #     model=MODEL_NAME,
-            #     contents=t_shirt_mockup_content,
-            #     config=config
-            # )
             response = self._make_api_call(
                 client, MODEL_NAME, t_shirt_mockup_content, config)
             logger.info("T-shirt mockup generated successfully.")

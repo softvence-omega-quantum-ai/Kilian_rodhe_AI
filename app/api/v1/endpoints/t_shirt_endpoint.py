@@ -30,27 +30,13 @@ router = APIRouter()
 
 @router.post("/t_shirt_generate")
 async def t_shirt_generate(
-    t_shirt_type: str = Form(..., description="Type of t-shirt (Adult or child)"),
-    t_shirt_size: str = Form(..., description="Size of the t-shirt (e.g., S, M, L, XL)"),
-    apparel_type: str = Form(..., description="Type of apparel (e.g., shirt, t-shirt, hoodie)"),
-    gender: str = Form(..., description="Intended gender fit for the t-shirt (e.g., male, female"),
-    t_shirt_color: str = Form(..., description="Base color of the t-shirt (e.g., black, white, red)"),
-    age: int = Form(..., description="Age of the target wearer (used for style/fit adjustments)"),
-    t_shirt_theme: str = Form(..., description="Theme or style of the t-shirt (e.g., birthday, sports, cartoon)"),
-    optional_description: Optional[str] = Form(None, description="Additional description to refine the design (optional)"),
+    prompt: str = Form(..., description="Detailed description of the t-shirt design and style"),
     img_file: Optional[Union[UploadFile,str]] = File(None, description="Optional image file to include in the t-shirt design"),
     background_task : BackgroundTasks = None
 ):
 
     t_shirt = TShirt(
-        tshirt_type=t_shirt_type,
-        tshirt_size=t_shirt_size,
-        apparel_type=apparel_type,
-        gender=gender,
-        age=age,
-        theme=t_shirt_theme,
-        color=t_shirt_color,
-        message=optional_description
+        prompt=prompt
     )
 
     allowed_file_types = ["image/jpeg", "image/png", "image/bmp"]
