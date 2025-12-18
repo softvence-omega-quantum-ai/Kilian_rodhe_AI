@@ -17,4 +17,4 @@ app.include_router(t_shirt_endpoint.router)
 
 @app.get("/")
 def read_root():    
-    return {"message": "Welcome to the Party Planner API! Visit /docs for API documentation."}
+    return {"message": "Welcome to the Kilian Rodhe API.Image Generation Service"}
