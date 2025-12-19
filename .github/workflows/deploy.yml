@@ -90,7 +90,7 @@ jobs:
 
       - name: Stop/Remove previous container (if exists)
         run: |
-          docker ps -q --filter "name=kilian_rodhe_ai" | grep -q . && docker stop kilian_rodhe_ai && docker rm -fv kilian_rodhe_ai || true
+          docker ps -a -q -f name=kilian_image_ai | grep -q . && docker rm -f kilian_image_ai || true
 
       - name: Run Docker container
         env:
