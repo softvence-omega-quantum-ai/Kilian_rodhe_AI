@@ -5,5 +5,5 @@ services:
     container_name: kilian_ai_service
     env_file: .env
     ports:
-      - "8000:8000"
+      - "8010:8010"
     restart: always
