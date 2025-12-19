@@ -88,9 +88,9 @@ jobs:
           test -n "$ECR_REPOSITORY" || (echo "ECR_REPOSITORY is empty" && exit 1)
           docker pull $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
 
-      # - name: Stop/Remove previous container (if exists)
-      #   run: |
-      #     docker ps -a -q -f name=kilian_image_ai | grep -q . && docker rm -f kilian_image_ai || true
+      - name: Stop/Remove previous container (if exists)
+        run: |
+          docker ps -a -q -f name=kilian_image_ai | grep -q . && docker rm -f kilian_image_ai || true
 
       - name: Run Docker container
         env:
