@@ -17,4 +17,4 @@ app.include_router(t_shirt_endpoint.router)
 
 @app.get("/")
 def read_root():    
-    return {"message": "Welcome to the Kilian Rodhe API.Image Generation Service"}
+    return {"message": "Welcome to the Kilian Rodhe API.Image Generation Service and project name is: Kilian_Rodhe"}
