@@ -267,5 +267,3 @@ MIT
 Roksana18cse04
 
 ---
-
-For more detailed API testing, visit the interactive documentation at `/docs` when running the application.
