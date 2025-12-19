@@ -88,9 +88,9 @@ jobs:
           test -n "$ECR_REPOSITORY" || (echo "ECR_REPOSITORY is empty" && exit 1)
           docker pull $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
 
-      - name: Stop/Remove previous container (if exists)
-        run: |
-          docker ps -a -q -f name=kilian_image_ai | grep -q . && docker rm -f kilian_image_ai || true
+      # - name: Stop/Remove previous container (if exists)
+      #   run: |
+      #     docker ps -a -q -f name=kilian_image_ai | grep -q . && docker rm -f kilian_image_ai || true
 
       - name: Run Docker container
         env:
@@ -99,8 +99,8 @@ jobs:
           IMAGE_TAG: latest
         run: |
           docker run -d \
-            --name kilian_rodhe_ai \
-            -p 8080:8080 \
+            --name kilian_image_ai \
+            -p 8010:8010 \
             --ipc="host" \
             -e AWS_ACCESS_KEY_ID=${{ secrets.AWS_ACCESS_KEY_ID }} \
             -e AWS_SECRET_ACCESS_KEY=${{ secrets.AWS_SECRET_ACCESS_KEY }} \
