@@ -10,7 +10,8 @@ import asyncio
 from app.config import TEMP_FOLDER_NAME
 from app.services.t_shirt.shirt import TShirt
 from app.utils.helper import response_data_img, delete_file
-from app.utils.helper import cloudinary_file_upload
+# from app.utils.helper import cloudinary_file_upload  # COMMENTED OUT - USING S3 NOW
+from app.utils.helper import s3_file_upload
 from app.utils.logger import get_logger
 
 
@@ -56,14 +57,14 @@ async def t_shirt_generate(
             print("Generating Image......")
             response_d = t_shirt.generate_shirt_design(temp_file_path)
             img_path = response_data_img(response_d)
-            generated_design_url = cloudinary_file_upload(img_path)
+            generated_design_url = s3_file_upload(img_path)
             print("Image Generated")
 
 
 
             print("Generating Mockup......")
             response_m = t_shirt.generate_shirt_mockup(img_path)
-            generated_mockup_url = cloudinary_file_upload(response_data_img(response_m))
+            generated_mockup_url = s3_file_upload(response_data_img(response_m))
             print("Mockup Generated.")
 
 
@@ -81,14 +82,14 @@ async def t_shirt_generate(
             print("Generating Image......")
             response_d = t_shirt.generate_shirt_design(None)
             img_path = response_data_img(response_d)
-            generated_design_url = cloudinary_file_upload(img_path)
+            generated_design_url = s3_file_upload(img_path)
             print("Image Generated")
 
 
 
             print("Generating Mockup......")
             response_m = t_shirt.generate_shirt_mockup(img_path)
-            generated_mockup_url = cloudinary_file_upload(response_data_img(response_m))
+            generated_mockup_url = s3_file_upload(response_data_img(response_m))
             print("Mockup Generated.")
 
             return JSONResponse(
