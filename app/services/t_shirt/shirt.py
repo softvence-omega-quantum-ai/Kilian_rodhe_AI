@@ -6,7 +6,7 @@ from google.api_core.exceptions import ServiceUnavailable
 
 from app.utils.logger import get_logger
 from app.utils.helper import upload_image
-from app.config import IMAGE_ANALYSIS_PROMPT, GEMINI_API_KEY, MODEL_NAME, TEMPERATURE, SHIRT_MOCKUP_PROMPT
+from app.config import CLOTHING_DESIGN_PROMPT, GEMINI_API_KEY, MODEL_NAME, TEMPERATURE
 
 logger = get_logger(__name__)
 
@@ -60,7 +60,7 @@ class TShirt:
                     {
                         "parts": [
                             {"inline_data": upload_image(ref_img_path)},
-                            {"text": IMAGE_ANALYSIS_PROMPT.format(prompt=self.prompt)}
+                            {"text": CLOTHING_DESIGN_PROMPT.format(prompt=self.prompt)}
                         ]
                     }
                 ]
@@ -69,7 +69,7 @@ class TShirt:
                 t_shirt_content = [
                     {
                         "parts": [
-                            {"text": IMAGE_ANALYSIS_PROMPT.format(prompt=self.prompt)}
+                            {"text": CLOTHING_DESIGN_PROMPT.format(prompt=self.prompt)}
                         ]
                     }
                 ]
@@ -85,14 +85,27 @@ class TShirt:
             logger.error(f"Error in shirt design: {e}")
             raise e
 
-    # T-Shirt Mockup Design
+    # Generate Clothing Mockup
     def generate_shirt_mockup(self, generated_design):
         try:
+            # Simple mockup prompt for t-shirt visualization
+            mockup_prompt = f"""
+            Create a realistic t-shirt mockup showing the uploaded design printed on a t-shirt.
+            
+            Requirements:
+            - Show the design naturally printed on the t-shirt fabric
+            - T-shirt should be laid flat or 3D product view
+            - Clean white background
+            - Professional product photo style
+            - No models, mannequins, or extra props
+            - Based on user requirements: {self.prompt}
+            """
+            
             t_shirt_mockup_content = [
                 {
                     "parts": [
                         {"inline_data": upload_image(generated_design)},
-                        {"text": SHIRT_MOCKUP_PROMPT.format(prompt=self.prompt)}
+                        {"text": mockup_prompt}
                     ]
                 }
             ]

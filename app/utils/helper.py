@@ -51,12 +51,12 @@ def s3_file_upload(file_path):
         file_extension = os.path.splitext(file_path)[1]
         s3_key = f"generated_images/{timestamp}_{unique_id}{file_extension}"
         
-        # Upload to S3
+        # Upload to S3 without ACL (bucket policy handles public access)
         s3_client.upload_file(
             file_path, 
             AWS_S3_BUCKET_NAME, 
             s3_key,
-            ExtraArgs={'ACL': 'public-read'}
+            ExtraArgs={'ContentType': 'image/png'}
         )
         
         # Return public URL
