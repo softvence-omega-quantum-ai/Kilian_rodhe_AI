@@ -29,10 +29,10 @@ router = APIRouter()
     )
 )
 
-@router.post("/t_shirt_generate")
-async def t_shirt_generate(
-    prompt: str = Form(..., description="Detailed description of the t-shirt design and style"),
-    img_file: Optional[Union[UploadFile,str]] = File(None, description="Optional image file to include in the t-shirt design"),
+@router.post("/generate_merchandise")
+async def generate_merchandise(
+    prompt: str = Form(..., description="Detailed description of the design and style"),
+    img_file: Optional[Union[UploadFile,str]] = File(None, description="Optional logo/image file to include in the design"),
     background_task : BackgroundTasks = None
 ):
 
@@ -54,17 +54,17 @@ async def t_shirt_generate(
             with open(temp_file_path, 'wb') as temp_file:
                 shutil.copyfileobj(img_file.file, temp_file)
 
-            print("Generating Image......")
+            print("Generating Design......")
             response_d = t_shirt.generate_shirt_design(temp_file_path)
             img_path = response_data_img(response_d)
             generated_design_url = s3_file_upload(img_path)
-            print("Image Generated")
+            print("Design Generated")
 
 
 
             print("Generating Mockup......")
-            response_m = t_shirt.generate_shirt_mockup(img_path)
-            generated_mockup_url = s3_file_upload(response_data_img(response_m))
+            response_mockup = t_shirt.generate_mockup(img_path)
+            generated_mockup_url = s3_file_upload(response_data_img(response_mockup))
             print("Mockup Generated.")
 
 
@@ -72,28 +72,34 @@ async def t_shirt_generate(
             background_task.add_task(delete_file, TEMP_FOLDER_NAME)
 
             return JSONResponse(
-                content={"generated_design_url": generated_design_url, "generated_mockup_url" : generated_mockup_url})
+                content={
+                    "generated_design_url": generated_design_url,
+                    "mockup_url": generated_mockup_url
+                })
 
         except FileNotFoundError:
             raise HTTPException(status_code=400, detail = "File not found.")
     else:
         try:
 
-            print("Generating Image......")
+            print("Generating Design......")
             response_d = t_shirt.generate_shirt_design(None)
             img_path = response_data_img(response_d)
             generated_design_url = s3_file_upload(img_path)
-            print("Image Generated")
+            print("Design Generated")
 
 
 
             print("Generating Mockup......")
-            response_m = t_shirt.generate_shirt_mockup(img_path)
-            generated_mockup_url = s3_file_upload(response_data_img(response_m))
+            response_mockup = t_shirt.generate_mockup(img_path)
+            generated_mockup_url = s3_file_upload(response_data_img(response_mockup))
             print("Mockup Generated.")
 
             return JSONResponse(
-                content={"generated_design_url": generated_design_url, "generated_mockup_url" : generated_mockup_url})
+                content={
+                    "generated_design_url": generated_design_url,
+                    "mockup_url": generated_mockup_url
+                })
 
         except FileNotFoundError:
             raise HTTPException(status_code=400, detail = "File not found.")

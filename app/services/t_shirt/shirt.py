@@ -19,6 +19,15 @@ class TShirt:
     def __init__(self, prompt):
         self.prompt = prompt
 
+    def _mockup_target(self) -> str:
+        """Choose mockup target based on prompt hints."""
+        text = (self.prompt or "").lower()
+        mug_keywords = ["mug", "cup", "ceramic"]
+        for kw in mug_keywords:
+            if kw in text:
+                return "mug"
+        return "tshirt"
+
 
     ## model
     @staticmethod
@@ -85,19 +94,21 @@ class TShirt:
             logger.error(f"Error in shirt design: {e}")
             raise e
 
-    # Generate Clothing Mockup
+    # Generate T-Shirt Mockup
     def generate_shirt_mockup(self, generated_design):
         try:
-            # Simple mockup prompt for t-shirt visualization
+            # T-shirt mockup prompt
             mockup_prompt = f"""
-            Create a realistic t-shirt mockup showing the uploaded design printed on a t-shirt.
+            Create a STUNNING, professional t-shirt mockup showcasing the uploaded design.
             
             Requirements:
-            - Show the design naturally printed on the t-shirt fabric
-            - T-shirt should be laid flat or 3D product view
-            - Clean white background
-            - Professional product photo style
+            - Show the design beautifully printed on a premium quality t-shirt
+            - T-shirt should be laid flat or 3D product view (choose most flattering angle)
+            - Clean white or subtle gradient background
+            - Professional product photography style with soft shadows
+            - Premium lighting that highlights the design
             - No models, mannequins, or extra props
+            - Make it look like a high-end retail product photo
             - Based on user requirements: {self.prompt}
             """
             
@@ -121,4 +132,52 @@ class TShirt:
         except Exception as e:
             logger.error(f"Error in shirt mockup: {e}")
             raise e
+
+    # Generate Mug Mockup
+    def generate_mug_mockup(self, generated_design):
+        try:
+            # Mug mockup prompt
+            mockup_prompt = f"""
+            Create a STUNNING, professional mug mockup showcasing the uploaded design.
+            
+            Requirements:
+            - Show the design beautifully printed on a premium ceramic mug
+            - Mug should be positioned at a flattering 3/4 angle showing the design clearly
+            - Clean white or subtle gradient background
+            - Professional product photography style with soft shadows and reflections
+            - Premium lighting that makes the mug look expensive and desirable
+            - Design should wrap naturally around the curved mug surface
+            - Show the mug handle positioned attractively
+            - Make it look like a high-end retail product photo
+            - The mug should be a classic white ceramic mug
+            - Based on user requirements: {self.prompt}
+            """
+            
+            mug_mockup_content = [
+                {
+                    "parts": [
+                        {"inline_data": upload_image(generated_design)},
+                        {"text": mockup_prompt}
+                    ]
+                }
+            ]
+
+            ## Model
+            logger.info("Generating mug mockup...")
+            client, config = self.model_client()
+
+            response = self._make_api_call(
+                client, MODEL_NAME, mug_mockup_content, config)
+            logger.info("Mug mockup generated successfully.")
+            return response
+        except Exception as e:
+            logger.error(f"Error in mug mockup: {e}")
+            raise e
+
+    def generate_mockup(self, generated_design):
+        """Generate the appropriate mockup (t-shirt or mug) based on prompt."""
+        target = self._mockup_target()
+        if target == "mug":
+            return self.generate_mug_mockup(generated_design)
+        return self.generate_shirt_mockup(generated_design)
 

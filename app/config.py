@@ -32,54 +32,32 @@ MODEL_NAME = "gemini-2.5-flash-image-preview"
 TEMPERATURE = 1.0
 GENERATED_IMG_PATH = Path("data")
 
-# Clothing Design Generation Prompt
+# Product Design Generation Prompt
 CLOTHING_DESIGN_PROMPT = """
-You are an expert clothing designer and digital artist. Create a high-quality, professional clothing design based on the user's requirements.
+You are a premium merchandise designer creating stunning yet realistic designs for apparel and mugs.
 
-**If an image is uploaded:**
-1. **Analyze the uploaded image thoroughly:**
-   - Extract key design elements: colors, patterns, shapes, textures, style
-   - Identify artistic style: minimalist, vintage, modern, abstract, realistic, cartoon, etc.
-   - Note composition elements: layout, balance, focal points
-   - Understand mood and aesthetic: playful, elegant, bold, subtle, etc.
+RULES:
+- Do NOT add any brand names, logos, or text unless the user explicitly provides them.
+- Keep everything realistic, clean, and print-ready.
+- If an image is uploaded, treat it as the main logo/mark; preserve it without alterations.
 
-2. **Use analysis as creative foundation:**
-   - Incorporate the visual style and aesthetic from the uploaded image
-   - Adapt colors, patterns, and design elements to work on clothing
-   - Maintain the essence and mood of the original image
+IF IMAGE UPLOADED:
+- Center the design around the uploaded logo/mark.
+- Complement (do not alter) the logo with subtle supporting elements based on: {prompt}
+- Ensure great contrast and clarity on both t-shirts and mugs.
 
-**If NO image is uploaded:**
-- Create design entirely based on user's text description
-- Focus on interpreting their vision into a clothing-appropriate design
+IF NO IMAGE:
+- Create a complete design only from the user description: {prompt}
+- Avoid arbitrary text or branding unless provided.
 
-**DESIGN REQUIREMENTS:**
-✅ **Output Format:**
-- Generate a standalone clothing design/artwork ONLY
-- NO t-shirt mockups, product photos, or clothing items
-- Design should be ready for printing on any garment
-- Transparent or clean background (no clutter)
+OUTPUT STYLE:
+- High-impact, professional, realistic look.
+- Clean/transparent background, print-ready.
+- Works on both t-shirts (fabric) and mugs (curved surface).
+- Balanced composition; crisp lines; no clutter.
 
-✅ **Design Specifications:**
-- Optimized for fabric printing (vector-style preferred)
-- Centered and well-balanced composition
-- Scalable design that works on different garment sizes
-- High contrast and clear details for print quality
-
-✅ **Style Considerations:**
-- Match the requested style: {prompt}
-- Consider target audience (age, gender, preferences)
-- Ensure design works on specified clothing type and color
-- Balance creativity with wearability
-
-✅ **Technical Requirements:**
-- Clean, crisp lines and shapes
-- Appropriate color palette for clothing
-- Design elements should not be too complex for printing
-- Consider how design will look when worn
-
-**User Requirements:** {prompt}
-
-**Final Output:** A professional, print-ready clothing design that perfectly captures the user's vision and works beautifully on apparel.
+FINAL OUTPUT:
+- A single, print-ready design suitable for both t-shirts and mugs.
 """
 
 
