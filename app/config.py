@@ -28,7 +28,7 @@ BASE_DIR = os.getcwd()
 ## Constant
 LOG_DIR = "logs"
 TEMP_FOLDER_NAME = "temp"
-MODEL_NAME = "gemini-2.5-flash-image-preview"
+MODEL_NAME = "gemini-2.5-flash-image"
 TEMPERATURE = 1.0
 GENERATED_IMG_PATH = Path("data")
 
