@@ -11,8 +11,6 @@ from app.config import CLOTHING_DESIGN_PROMPT, GEMINI_API_KEY, MODEL_NAME, TEMPE
 logger = get_logger(__name__)
 
 
-# 1. t-shirt Design
-# 2. t-shirt mockup
 
 class TShirt:
 
