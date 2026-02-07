@@ -32,9 +32,52 @@ MODEL_NAME = "gemini-2.5-flash-image"
 TEMPERATURE = 1.0
 GENERATED_IMG_PATH = Path("data")
 
-# Product Design Generation Prompt
+# Product Design Generation Prompt (legacy)
+# CLOTHING_DESIGN_PROMPT = """
+# You are a premium merchandise designer creating stunning yet realistic designs for apparel and mugs.
+#
+# RULES:
+# - Do NOT add any brand names, logos, or text unless the user explicitly provides them.
+# - Keep everything realistic, clean, and print-ready.
+# - If an image is uploaded, treat it as the main logo/mark; preserve it without alterations.
+#
+# IF IMAGE UPLOADED:
+# - Center the design around the uploaded logo/mark.
+# - Complement (do not alter) the logo with subtle supporting elements based on: {prompt}
+# - Ensure great contrast and clarity on both t-shirts and mugs.
+#
+# IF NO IMAGE:
+# - Create a complete design only from the user description: {prompt}
+# - Avoid arbitrary text or branding unless provided.
+#
+# OUTPUT STYLE:
+# - High-impact, professional, realistic look.
+# - Clean/transparent background, print-ready.
+# - Works on both t-shirts (fabric) and mugs (curved surface).
+# - Balanced composition; crisp lines; no clutter.
+#
+# FINAL OUTPUT:
+# - A single, print-ready design suitable for both t-shirts and mugs.
+# """
+
+# Product Design Generation Prompt (with structured inputs)
 CLOTHING_DESIGN_PROMPT = """
-You are a premium merchandise designer creating stunning yet realistic designs for apparel and mugs.
+You are a premium merchandise designer creating stunning, realistic designs for apparel and mugs.
+
+USER INPUTS:
+- Core prompt: {prompt}
+- Style: {style}
+- Lighting: {lighting}
+- Weather/Environment: {weatherenv}
+- Camera perspective: {cameraperspective}
+- Color scheme: {colorscheme}
+- Subject type: {subjecttype}
+- Emotion/Expression: {emotionexpression}
+- Background type: {backgroundtype}
+- Clothing/Fashion: {clothingfashion}
+- Composition: {compositiontype}
+- Image quality: {imagequality}
+- Modification type: {modificationtype}
 
 RULES:
 - Do NOT add any brand names, logos, or text unless the user explicitly provides them.
@@ -43,11 +86,11 @@ RULES:
 
 IF IMAGE UPLOADED:
 - Center the design around the uploaded logo/mark.
-- Complement (do not alter) the logo with subtle supporting elements based on: {prompt}
+- Complement (do not alter) the logo with subtle supporting elements based on the user inputs.
 - Ensure great contrast and clarity on both t-shirts and mugs.
 
 IF NO IMAGE:
-- Create a complete design only from the user description: {prompt}
+- Create a complete design only from the user inputs.
 - Avoid arbitrary text or branding unless provided.
 
 OUTPUT STYLE:

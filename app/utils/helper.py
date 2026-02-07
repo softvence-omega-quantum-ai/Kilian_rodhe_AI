@@ -1,4 +1,5 @@
 import os
+import asyncio
 from PIL import Image
 from io import BytesIO
 import mimetypes
@@ -69,6 +70,10 @@ def s3_file_upload(file_path):
         raise ValueError(f"Upload error: {str(e)}")
 
 
+async def s3_file_upload_async(file_path):
+    return await asyncio.to_thread(s3_file_upload, file_path)
+
+
 def upload_image(image_path):
     mime_type, _ = mimetypes.guess_type(image_path)
     if mime_type is None:
@@ -92,6 +97,10 @@ def response_data_img(response):
     return temp_file_path
 
 
+async def response_data_img_async(response):
+    return await asyncio.to_thread(response_data_img, response)
+
+
 def load_json(json_data, JsonOpject):
     try:
         data_dict = json.loads(json_data)
@@ -104,6 +113,10 @@ def load_json(json_data, JsonOpject):
 def delete_file(file_path):
     if os.path.exists(file_path):
         shutil.rmtree(file_path)
+
+
+async def delete_file_async(file_path):
+    return await asyncio.to_thread(delete_file, file_path)
 
 
 
