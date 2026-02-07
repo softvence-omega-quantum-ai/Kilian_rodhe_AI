@@ -9,9 +9,8 @@ import asyncio
 
 from app.config import TEMP_FOLDER_NAME
 from app.services.t_shirt.shirt import TShirt
-from app.utils.helper import response_data_img, delete_file
+from app.utils.helper import response_data_img_async, delete_file_async, s3_file_upload_async, delete_file
 # from app.utils.helper import cloudinary_file_upload  # COMMENTED OUT - USING S3 NOW
-from app.utils.helper import s3_file_upload
 from app.utils.logger import get_logger
 
 
@@ -32,12 +31,36 @@ router = APIRouter()
 @router.post("/generate_merchandise")
 async def generate_merchandise(
     prompt: str = Form(..., description="Detailed description of the design and style"),
+    style: Optional[str]= Form(None, description= "Comic /Cartoon /Minimalist"),
+    lighting: Optional[str]= Form(None, description= "Bright day light / Soft light / Golden hour"),
+    weatherenv: Optional[str]= Form(None, description="Sunny / Rain/ Fog"),
+    cameraperspective: Optional[str]= Form(None, description= "Close up/ Medium shot / Wide shot"),
+    colorscheme: Optional[str]= Form(None, description= "Black White / Monochrome/ Pastel"),
+    subjecttype: Optional[str]=Form(None,description= "Person / Animal/ Landscape"), 
+    emotionexpression: Optional[str]=Form(None, description= "Happy / Sad / Excited"),
+    backgroundtype: Optional[str]= Form(None, description=" Transparent / Solid color / Natural"),
+    clothingfashion: Optional[str]= Form(None, description= "Casual / Business / Sports Wear"),
+    compositiontype: Optional[str]= Form(None, description= "Centered / Symmetrical / Asymmetrical"),
+    imagequality: Optional[str]= Form(None, description="HD / Low Resulation / Sharp"),
+    modificationtype: Optional[str]= Form(None, description="Background Removal / Style Transfer/ Face Enhancement"),
     img_file: Optional[Union[UploadFile,str]] = File(None, description="Optional logo/image file to include in the design"),
     background_task : BackgroundTasks = None
 ):
 
     t_shirt = TShirt(
-        prompt=prompt
+        prompt=prompt,
+        style=style,
+        lighting=lighting,
+        weatherenv=weatherenv,
+        cameraperspective=cameraperspective,
+        colorscheme=colorscheme,
+        subjecttype=subjecttype,
+        emotionexpression=emotionexpression,
+        backgroundtype=backgroundtype,
+        clothingfashion=clothingfashion,
+        compositiontype=compositiontype,
+        imagequality=imagequality,
+        modificationtype=modificationtype,
     )
 
     allowed_file_types = ["image/jpeg", "image/png", "image/bmp"]
@@ -51,25 +74,28 @@ async def generate_merchandise(
         temp_file_path = os.path.join(TEMP_FOLDER_NAME, img_file.filename)
 
         try:
-            with open(temp_file_path, 'wb') as temp_file:
-                shutil.copyfileobj(img_file.file, temp_file)
+            await asyncio.to_thread(_save_upload_file, img_file, temp_file_path)
 
             print("Generating Design......")
-            response_d = t_shirt.generate_shirt_design(temp_file_path)
-            img_path = response_data_img(response_d)
-            generated_design_url = s3_file_upload(img_path)
+            response_d = await asyncio.to_thread(t_shirt.generate_shirt_design, temp_file_path)
+            img_path = await response_data_img_async(response_d)
+            generated_design_url = await s3_file_upload_async(img_path)
             print("Design Generated")
 
 
 
             print("Generating Mockup......")
-            response_mockup = t_shirt.generate_mockup(img_path)
-            generated_mockup_url = s3_file_upload(response_data_img(response_mockup))
+            response_mockup = await asyncio.to_thread(t_shirt.generate_mockup, img_path)
+            mockup_path = await response_data_img_async(response_mockup)
+            generated_mockup_url = await s3_file_upload_async(mockup_path)
             print("Mockup Generated.")
 
 
 
-            background_task.add_task(delete_file, TEMP_FOLDER_NAME)
+            if background_task:
+                background_task.add_task(delete_file, TEMP_FOLDER_NAME)
+            else:
+                await delete_file_async(TEMP_FOLDER_NAME)
 
             return JSONResponse(
                 content={
@@ -83,16 +109,17 @@ async def generate_merchandise(
         try:
 
             print("Generating Design......")
-            response_d = t_shirt.generate_shirt_design(None)
-            img_path = response_data_img(response_d)
-            generated_design_url = s3_file_upload(img_path)
+            response_d = await asyncio.to_thread(t_shirt.generate_shirt_design, None)
+            img_path = await response_data_img_async(response_d)
+            generated_design_url = await s3_file_upload_async(img_path)
             print("Design Generated")
 
 
 
             print("Generating Mockup......")
-            response_mockup = t_shirt.generate_mockup(img_path)
-            generated_mockup_url = s3_file_upload(response_data_img(response_mockup))
+            response_mockup = await asyncio.to_thread(t_shirt.generate_mockup, img_path)
+            mockup_path = await response_data_img_async(response_mockup)
+            generated_mockup_url = await s3_file_upload_async(mockup_path)
             print("Mockup Generated.")
 
             return JSONResponse(
@@ -103,6 +130,11 @@ async def generate_merchandise(
 
         except FileNotFoundError:
             raise HTTPException(status_code=400, detail = "File not found.")
+
+
+def _save_upload_file(upload_file: UploadFile, destination: str) -> None:
+    with open(destination, "wb") as temp_file:
+        shutil.copyfileobj(upload_file.file, temp_file)
 
 
 

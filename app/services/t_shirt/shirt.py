@@ -14,8 +14,35 @@ logger = get_logger(__name__)
 
 class TShirt:
 
-    def __init__(self, prompt):
+    def __init__(
+        self,
+        prompt: str,
+        style: Optional[str] = None,
+        lighting: Optional[str] = None,
+        weatherenv: Optional[str] = None,
+        cameraperspective: Optional[str] = None,
+        colorscheme: Optional[str] = None,
+        subjecttype: Optional[str] = None,
+        emotionexpression: Optional[str] = None,
+        backgroundtype: Optional[str] = None,
+        clothingfashion: Optional[str] = None,
+        compositiontype: Optional[str] = None,
+        imagequality: Optional[str] = None,
+        modificationtype: Optional[str] = None,
+    ):
         self.prompt = prompt
+        self.style = style
+        self.lighting = lighting
+        self.weatherenv = weatherenv
+        self.cameraperspective = cameraperspective
+        self.colorscheme = colorscheme
+        self.subjecttype = subjecttype
+        self.emotionexpression = emotionexpression
+        self.backgroundtype = backgroundtype
+        self.clothingfashion = clothingfashion
+        self.compositiontype = compositiontype
+        self.imagequality = imagequality
+        self.modificationtype = modificationtype
 
     def _mockup_target(self) -> str:
         """Choose mockup target based on prompt hints."""
@@ -60,6 +87,21 @@ class TShirt:
     ## T-Shirt Design
     def generate_shirt_design(self, ref_img_path : Optional[str] = None):
         try:
+            prompt_vars = {
+                "prompt": self.prompt,
+                "style": self.style or "Unspecified",
+                "lighting": self.lighting or "Unspecified",
+                "weatherenv": self.weatherenv or "Unspecified",
+                "cameraperspective": self.cameraperspective or "Unspecified",
+                "colorscheme": self.colorscheme or "Unspecified",
+                "subjecttype": self.subjecttype or "Unspecified",
+                "emotionexpression": self.emotionexpression or "Unspecified",
+                "backgroundtype": self.backgroundtype or "Unspecified",
+                "clothingfashion": self.clothingfashion or "Unspecified",
+                "compositiontype": self.compositiontype or "Unspecified",
+                "imagequality": self.imagequality or "Unspecified",
+                "modificationtype": self.modificationtype or "Unspecified",
+            }
 
             if ref_img_path:
                 logger.info("Uploading reference image...")
@@ -67,7 +109,7 @@ class TShirt:
                     {
                         "parts": [
                             {"inline_data": upload_image(ref_img_path)},
-                            {"text": CLOTHING_DESIGN_PROMPT.format(prompt=self.prompt)}
+                            {"text": CLOTHING_DESIGN_PROMPT.format(**prompt_vars)}
                         ]
                     }
                 ]
@@ -76,7 +118,7 @@ class TShirt:
                 t_shirt_content = [
                     {
                         "parts": [
-                            {"text": CLOTHING_DESIGN_PROMPT.format(prompt=self.prompt)}
+                            {"text": CLOTHING_DESIGN_PROMPT.format(**prompt_vars)}
                         ]
                     }
                 ]
