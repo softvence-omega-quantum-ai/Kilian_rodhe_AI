@@ -85,21 +85,51 @@ async def generate_merchandise(
             logo_image_path = os.path.join(TEMP_FOLDER_NAME, f"logo_{logo_image.filename}")
             await asyncio.to_thread(_save_upload_file, logo_image, logo_image_path)
 
-        print("Generating Design......")
-        response_d = await asyncio.to_thread(
-            t_shirt.generate_shirt_design,
-            product_image_path,
-            logo_image_path
-        )
-        img_path = await response_data_img_async(response_d)
-        generated_design_url = await s3_file_upload_async(img_path)
-        print("Design Generated")
+        if product_image_path:
+            # Design URL should contain only the design asset:
+            # - provided logo if user uploaded one
+            # - generated design if no logo uploaded
+            if logo_image_path:
+                print("Using uploaded logo as design asset......")
+                generated_design_url = await s3_file_upload_async(logo_image_path)
+                design_asset_path = logo_image_path
+            else:
+                print("Generating Design Asset......")
+                response_design_asset = await asyncio.to_thread(
+                    t_shirt.generate_shirt_design,
+                    None,
+                    None
+                )
+                design_asset_path = await response_data_img_async(response_design_asset)
+                generated_design_url = await s3_file_upload_async(design_asset_path)
+                print("Design Asset Generated.")
 
-        print("Generating Mockup......")
-        response_mockup = await asyncio.to_thread(t_shirt.generate_mockup, img_path)
-        mockup_path = await response_data_img_async(response_mockup)
-        generated_mockup_url = await s3_file_upload_async(mockup_path)
-        print("Mockup Generated.")
+            # Mockup URL should contain designed product output
+            print("Generating Designed Product......")
+            response_product = await asyncio.to_thread(
+                t_shirt.generate_design_on_product,
+                product_image_path,
+                design_asset_path
+            )
+            designed_product_path = await response_data_img_async(response_product)
+            generated_mockup_url = await s3_file_upload_async(designed_product_path)
+            print("Designed Product Generated.")
+        else:
+            print("Generating Design......")
+            response_d = await asyncio.to_thread(
+                t_shirt.generate_shirt_design,
+                None,
+                logo_image_path
+            )
+            img_path = await response_data_img_async(response_d)
+            generated_design_url = await s3_file_upload_async(img_path)
+            print("Design Generated")
+
+            print("Generating Mockup......")
+            response_mockup = await asyncio.to_thread(t_shirt.generate_mockup, img_path)
+            mockup_path = await response_data_img_async(response_mockup)
+            generated_mockup_url = await s3_file_upload_async(mockup_path)
+            print("Mockup Generated.")
 
         if product_image or logo_image:
             if background_task:

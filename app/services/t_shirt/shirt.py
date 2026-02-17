@@ -44,6 +44,41 @@ class TShirt:
         self.imagequality = imagequality
         self.modificationtype = modificationtype
 
+    def _prompt_vars(self):
+        return {
+            "prompt": self.prompt,
+            "style": self.style or "Unspecified",
+            "lighting": self.lighting or "Unspecified",
+            "weatherenv": self.weatherenv or "Unspecified",
+            "cameraperspective": self.cameraperspective or "Unspecified",
+            "colorscheme": self.colorscheme or "Unspecified",
+            "subjecttype": self.subjecttype or "Unspecified",
+            "emotionexpression": self.emotionexpression or "Unspecified",
+            "backgroundtype": self.backgroundtype or "Unspecified",
+            "clothingfashion": self.clothingfashion or "Unspecified",
+            "compositiontype": self.compositiontype or "Unspecified",
+            "imagequality": self.imagequality or "Unspecified",
+            "modificationtype": self.modificationtype or "Unspecified",
+        }
+
+    def _structured_inputs_text(self) -> str:
+        prompt_vars = self._prompt_vars()
+        return (
+            f"Core prompt: {prompt_vars['prompt']}\n"
+            f"Style: {prompt_vars['style']}\n"
+            f"Lighting: {prompt_vars['lighting']}\n"
+            f"Weather/Environment: {prompt_vars['weatherenv']}\n"
+            f"Camera perspective: {prompt_vars['cameraperspective']}\n"
+            f"Color scheme: {prompt_vars['colorscheme']}\n"
+            f"Subject type: {prompt_vars['subjecttype']}\n"
+            f"Emotion/Expression: {prompt_vars['emotionexpression']}\n"
+            f"Background type: {prompt_vars['backgroundtype']}\n"
+            f"Clothing/Fashion: {prompt_vars['clothingfashion']}\n"
+            f"Composition: {prompt_vars['compositiontype']}\n"
+            f"Image quality: {prompt_vars['imagequality']}\n"
+            f"Modification type: {prompt_vars['modificationtype']}"
+        )
+
     def _mockup_target(self) -> str:
         """Choose mockup target based on prompt hints."""
         text = (self.prompt or "").lower()
@@ -91,24 +126,15 @@ class TShirt:
         logo_img_path: Optional[str] = None
     ):
         try:
-            prompt_vars = {
-                "prompt": self.prompt,
-                "style": self.style or "Unspecified",
-                "lighting": self.lighting or "Unspecified",
-                "weatherenv": self.weatherenv or "Unspecified",
-                "cameraperspective": self.cameraperspective or "Unspecified",
-                "colorscheme": self.colorscheme or "Unspecified",
-                "subjecttype": self.subjecttype or "Unspecified",
-                "emotionexpression": self.emotionexpression or "Unspecified",
-                "backgroundtype": self.backgroundtype or "Unspecified",
-                "clothingfashion": self.clothingfashion or "Unspecified",
-                "compositiontype": self.compositiontype or "Unspecified",
-                "imagequality": self.imagequality or "Unspecified",
-                "modificationtype": self.modificationtype or "Unspecified",
-            }
+            prompt_vars = self._prompt_vars()
 
             parts = []
             role_hints = []
+            design_output_hints = [
+                "- Output must be a standalone design asset only (logo/sticker/pattern/graphic).",
+                "- Do NOT generate a mug, t-shirt, model, mannequin, or any product mockup.",
+                "- Keep background clean/transparent and make the design print-ready."
+            ]
 
             if product_img_path:
                 logger.info("Uploading product/reference image...")
@@ -119,6 +145,10 @@ class TShirt:
                 logger.info("Uploading logo image...")
                 parts.append({"inline_data": upload_image(logo_img_path)})
                 role_hints.append("- Use the second uploaded image as the logo and preserve it accurately.")
+                role_hints.append("- Do not generate a new logo when a logo image is provided.")
+                role_hints.append("- Do not replace, redraw, or invent a different brand mark.")
+            else:
+                role_hints.append("- No logo image was provided; you may create a logo/design from the prompt.")
 
             if not parts:
                 logger.info("No reference images provided.")
@@ -126,6 +156,7 @@ class TShirt:
             role_hint_text = ""
             if role_hints:
                 role_hint_text = "\n\nIMAGE ROLE GUIDANCE:\n" + "\n".join(role_hints)
+            role_hint_text += "\n\nOUTPUT FORMAT RULES:\n" + "\n".join(design_output_hints)
 
             parts.append({"text": CLOTHING_DESIGN_PROMPT.format(**prompt_vars) + role_hint_text})
             t_shirt_content = [{"parts": parts}]
@@ -139,6 +170,63 @@ class TShirt:
             return response
         except Exception as e:
             logger.error(f"Error in shirt design: {e}")
+            raise e
+
+    def generate_design_on_product(
+        self,
+        product_img_path: str,
+        logo_img_path: Optional[str] = None
+    ):
+        try:
+            logger.info("Uploading base product image for direct product design...")
+            parts = [{"inline_data": upload_image(product_img_path)}]
+
+            logo_instruction = (
+                "No logo image was provided. Create a fresh logo/design from the user prompt "
+                "and apply it realistically on the product surface."
+            )
+            if logo_img_path:
+                logger.info("Uploading logo image for product placement...")
+                parts.append({"inline_data": upload_image(logo_img_path)})
+                logo_instruction = (
+                    "A second image is provided as the official logo. Preserve that logo identity "
+                    "while adapting size/perspective for realistic placement on the product."
+                )
+
+            product_edit_prompt = f"""
+            You are editing a product photo.
+
+            IMAGE ORDER:
+            - First image: base product image (must remain the same product).
+            - Second image (if present): logo image.
+
+            STRICT RULES:
+            - Keep the exact same product category, shape, material, and overall scene from the first image.
+            - Do NOT transform the product into a t-shirt, mug, or any different product unless it already is that product in the first image.
+            - Apply the logo/design only onto appropriate printable areas of the first image product.
+            - Preserve product perspective, lighting, shadows, and texture so the print looks realistic.
+            - Do not add unrelated branding text.
+            - Return one final edited product image only.
+
+            LOGO/DESIGN BEHAVIOR:
+            - {logo_instruction}
+            - If a logo image is provided, do NOT create a new logo. Use only the provided logo.
+            - If no logo image is provided, create the logo/design from the prompt.
+
+            USER INPUTS:
+            {self._structured_inputs_text()}
+            """
+
+            parts.append({"text": product_edit_prompt})
+            content = [{"parts": parts}]
+
+            logger.info("Generating direct-on-product design...")
+            client, config = self.model_client()
+            response = self._make_api_call(client, MODEL_NAME, content, config)
+            logger.info("Direct-on-product design generated successfully.")
+            return response
+        except Exception as e:
+            logger.error(f"Error in direct product design: {e}")
             raise e
 
     # Generate T-Shirt Mockup
