@@ -85,7 +85,11 @@ class TShirt:
         )
 
     ## T-Shirt Design
-    def generate_shirt_design(self, ref_img_path : Optional[str] = None):
+    def generate_shirt_design(
+        self,
+        product_img_path: Optional[str] = None,
+        logo_img_path: Optional[str] = None
+    ):
         try:
             prompt_vars = {
                 "prompt": self.prompt,
@@ -103,25 +107,28 @@ class TShirt:
                 "modificationtype": self.modificationtype or "Unspecified",
             }
 
-            if ref_img_path:
-                logger.info("Uploading reference image...")
-                t_shirt_content = [
-                    {
-                        "parts": [
-                            {"inline_data": upload_image(ref_img_path)},
-                            {"text": CLOTHING_DESIGN_PROMPT.format(**prompt_vars)}
-                        ]
-                    }
-                ]
-            else:
-                logger.info("No reference image provided.")
-                t_shirt_content = [
-                    {
-                        "parts": [
-                            {"text": CLOTHING_DESIGN_PROMPT.format(**prompt_vars)}
-                        ]
-                    }
-                ]
+            parts = []
+            role_hints = []
+
+            if product_img_path:
+                logger.info("Uploading product/reference image...")
+                parts.append({"inline_data": upload_image(product_img_path)})
+                role_hints.append("- Use the first uploaded image as a product/reference image.")
+
+            if logo_img_path:
+                logger.info("Uploading logo image...")
+                parts.append({"inline_data": upload_image(logo_img_path)})
+                role_hints.append("- Use the second uploaded image as the logo and preserve it accurately.")
+
+            if not parts:
+                logger.info("No reference images provided.")
+
+            role_hint_text = ""
+            if role_hints:
+                role_hint_text = "\n\nIMAGE ROLE GUIDANCE:\n" + "\n".join(role_hints)
+
+            parts.append({"text": CLOTHING_DESIGN_PROMPT.format(**prompt_vars) + role_hint_text})
+            t_shirt_content = [{"parts": parts}]
 
             ## Model
             logger.info("Generating t-shirt design...")

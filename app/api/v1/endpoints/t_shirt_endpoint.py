@@ -1,6 +1,6 @@
 from fastapi import APIRouter, UploadFile, File, HTTPException, Form, BackgroundTasks
 from fastapi.responses import JSONResponse
-from typing import Optional, Union
+from typing import Optional
 import shutil
 import os
 from tenacity import retry, stop_after_attempt, wait_exponential, retry_if_exception_type
@@ -43,7 +43,8 @@ async def generate_merchandise(
     compositiontype: Optional[str]= Form(None, description= "Centered / Symmetrical / Asymmetrical"),
     imagequality: Optional[str]= Form(None, description="HD / Low Resulation / Sharp"),
     modificationtype: Optional[str]= Form(None, description="Background Removal / Style Transfer/ Face Enhancement"),
-    img_file: Optional[Union[UploadFile,str]] = File(None, description="Optional logo/image file to include in the design"),
+    product_image: Optional[UploadFile] = File(None, description="Optional product/reference image"),
+    logo_image: Optional[UploadFile] = File(None, description="Optional logo image"),
     background_task : BackgroundTasks = None
 ):
 
@@ -64,72 +65,56 @@ async def generate_merchandise(
     )
 
     allowed_file_types = ["image/jpeg", "image/png", "image/bmp"]
+    product_image_path = None
+    logo_image_path = None
 
-    ## With image
-    if img_file:
-        if img_file.content_type not in allowed_file_types:
-            raise HTTPException(status_code=404, detail = "Only Image file are acceptable.")
+    if product_image and product_image.content_type not in allowed_file_types:
+        raise HTTPException(status_code=404, detail = "Only Image file are acceptable.")
+    if logo_image and logo_image.content_type not in allowed_file_types:
+        raise HTTPException(status_code=404, detail = "Only Image file are acceptable.")
 
-        os.makedirs(TEMP_FOLDER_NAME, exist_ok = True)
-        temp_file_path = os.path.join(TEMP_FOLDER_NAME, img_file.filename)
+    try:
+        if product_image or logo_image:
+            os.makedirs(TEMP_FOLDER_NAME, exist_ok = True)
 
-        try:
-            await asyncio.to_thread(_save_upload_file, img_file, temp_file_path)
+        if product_image:
+            product_image_path = os.path.join(TEMP_FOLDER_NAME, f"product_{product_image.filename}")
+            await asyncio.to_thread(_save_upload_file, product_image, product_image_path)
 
-            print("Generating Design......")
-            response_d = await asyncio.to_thread(t_shirt.generate_shirt_design, temp_file_path)
-            img_path = await response_data_img_async(response_d)
-            generated_design_url = await s3_file_upload_async(img_path)
-            print("Design Generated")
+        if logo_image:
+            logo_image_path = os.path.join(TEMP_FOLDER_NAME, f"logo_{logo_image.filename}")
+            await asyncio.to_thread(_save_upload_file, logo_image, logo_image_path)
 
+        print("Generating Design......")
+        response_d = await asyncio.to_thread(
+            t_shirt.generate_shirt_design,
+            product_image_path,
+            logo_image_path
+        )
+        img_path = await response_data_img_async(response_d)
+        generated_design_url = await s3_file_upload_async(img_path)
+        print("Design Generated")
 
+        print("Generating Mockup......")
+        response_mockup = await asyncio.to_thread(t_shirt.generate_mockup, img_path)
+        mockup_path = await response_data_img_async(response_mockup)
+        generated_mockup_url = await s3_file_upload_async(mockup_path)
+        print("Mockup Generated.")
 
-            print("Generating Mockup......")
-            response_mockup = await asyncio.to_thread(t_shirt.generate_mockup, img_path)
-            mockup_path = await response_data_img_async(response_mockup)
-            generated_mockup_url = await s3_file_upload_async(mockup_path)
-            print("Mockup Generated.")
-
-
-
+        if product_image or logo_image:
             if background_task:
                 background_task.add_task(delete_file, TEMP_FOLDER_NAME)
             else:
                 await delete_file_async(TEMP_FOLDER_NAME)
 
-            return JSONResponse(
-                content={
-                    "generated_design_url": generated_design_url,
-                    "mockup_url": generated_mockup_url
-                })
+        return JSONResponse(
+            content={
+                "generated_design_url": generated_design_url,
+                "mockup_url": generated_mockup_url
+            })
 
-        except FileNotFoundError:
-            raise HTTPException(status_code=400, detail = "File not found.")
-    else:
-        try:
-
-            print("Generating Design......")
-            response_d = await asyncio.to_thread(t_shirt.generate_shirt_design, None)
-            img_path = await response_data_img_async(response_d)
-            generated_design_url = await s3_file_upload_async(img_path)
-            print("Design Generated")
-
-
-
-            print("Generating Mockup......")
-            response_mockup = await asyncio.to_thread(t_shirt.generate_mockup, img_path)
-            mockup_path = await response_data_img_async(response_mockup)
-            generated_mockup_url = await s3_file_upload_async(mockup_path)
-            print("Mockup Generated.")
-
-            return JSONResponse(
-                content={
-                    "generated_design_url": generated_design_url,
-                    "mockup_url": generated_mockup_url
-                })
-
-        except FileNotFoundError:
-            raise HTTPException(status_code=400, detail = "File not found.")
+    except FileNotFoundError:
+        raise HTTPException(status_code=400, detail = "File not found.")
 
 
 def _save_upload_file(upload_file: UploadFile, destination: str) -> None:

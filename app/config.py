@@ -82,11 +82,13 @@ USER INPUTS:
 RULES:
 - Do NOT add any brand names, logos, or text unless the user explicitly provides them.
 - Keep everything realistic, clean, and print-ready.
-- If an image is uploaded, treat it as the main logo/mark; preserve it without alterations.
+- If a logo image is uploaded, preserve it without alterations.
+- If a product/reference image is uploaded, use it as visual context.
 
-IF IMAGE UPLOADED:
-- Center the design around the uploaded logo/mark.
-- Complement (do not alter) the logo with subtle supporting elements based on the user inputs.
+IF IMAGE(S) UPLOADED:
+- If logo image exists, center the design around the uploaded logo/mark.
+- If product/reference image exists, align style/composition to that reference where helpful.
+- Complement uploaded inputs with subtle supporting elements based on the user inputs.
 - Ensure great contrast and clarity on both t-shirts and mugs.
 
 IF NO IMAGE:
