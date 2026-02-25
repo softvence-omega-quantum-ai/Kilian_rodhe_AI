@@ -1,7 +1,8 @@
-from fastapi import APIRouter, HTTPException, Form, BackgroundTasks
+from fastapi import APIRouter, HTTPException, Form, BackgroundTasks, UploadFile, File
 from fastapi.responses import JSONResponse
 from typing import Optional
 import os
+import uuid
 from tenacity import retry, stop_after_attempt, wait_exponential, retry_if_exception_type
 from google.genai.errors import ServerError
 import asyncio
@@ -14,6 +15,7 @@ from app.utils.helper import (
     s3_file_upload_async,
     delete_file,
     download_image_from_url_async,
+    ALLOWED_IMAGE_MIME_TYPES,
 )
 # from app.utils.helper import cloudinary_file_upload  # COMMENTED OUT - USING S3 NOW
 from app.utils.logger import get_logger
@@ -49,7 +51,7 @@ async def generate_merchandise(
     imagequality: Optional[str]= Form(None, description="HD / Low Resulation / Sharp"),
     modificationtype: Optional[str]= Form(None, description="Background Removal / Style Transfer/ Face Enhancement"),
     product_image_url: Optional[str] = Form(None, description="Optional product/reference image URL"),
-    logo_image_url: Optional[str] = Form(None, description="Optional logo image URL"),
+    logo_image: Optional[UploadFile] = File(None, description="Optional logo image file upload"),
     background_task : BackgroundTasks = None
 ):
 
@@ -73,7 +75,7 @@ async def generate_merchandise(
     logo_image_path = None
 
     try:
-        if product_image_url or logo_image_url:
+        if product_image_url or logo_image:
             os.makedirs(TEMP_FOLDER_NAME, exist_ok = True)
 
         if product_image_url:
@@ -83,12 +85,23 @@ async def generate_merchandise(
                 "product",
             )
 
-        if logo_image_url:
-            logo_image_path = await download_image_from_url_async(
-                logo_image_url,
+        if logo_image:
+            content_type = (logo_image.content_type or "").lower()
+            if content_type not in ALLOWED_IMAGE_MIME_TYPES:
+                raise ValueError("Only JPEG, PNG, and BMP logo uploads are acceptable.")
+
+            extension_map = {
+                "image/jpeg": ".jpg",
+                "image/png": ".png",
+                "image/bmp": ".bmp",
+            }
+            logo_image_path = os.path.join(
                 TEMP_FOLDER_NAME,
-                "logo",
+                f"logo_upload_{uuid.uuid4().hex[:8]}{extension_map.get(content_type, '.img')}",
             )
+            with open(logo_image_path, "wb") as logo_file:
+                logo_file.write(await logo_image.read())
+            await logo_image.close()
 
         if product_image_path:
             # Design URL should contain only the design asset:
@@ -136,7 +149,7 @@ async def generate_merchandise(
             generated_mockup_url = await s3_file_upload_async(mockup_path)
             print("Mockup Generated.")
 
-        if product_image_url or logo_image_url:
+        if product_image_url or logo_image:
             if background_task:
                 background_task.add_task(delete_file, TEMP_FOLDER_NAME)
             else:
