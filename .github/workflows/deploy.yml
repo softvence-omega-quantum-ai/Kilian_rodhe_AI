@@ -158,4 +158,4 @@ jobs:
             cd ${{ env.DEPLOY_PATH }}
             docker compose pull
             docker compose up -d --remove-orphans
-            docker image prune -f --filter=reference="softvence/Kilian_rodhe_AI:*"
+            docker image prune -f --filter=reference="softvence/kilian_image_ai:*"
