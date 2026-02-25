@@ -124,7 +124,7 @@ on:
     branches: ["main"]
 
 env:
-  IMAGE: softvence/Kilian_rodhe_AI
+  IMAGE: softvence/kilian_image_ai
   DEPLOY_PATH: /home/ubuntu/kilian_image_ai
 
 
