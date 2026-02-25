@@ -1,7 +1,6 @@
-from fastapi import APIRouter, UploadFile, File, HTTPException, Form, BackgroundTasks
+from fastapi import APIRouter, HTTPException, Form, BackgroundTasks
 from fastapi.responses import JSONResponse
 from typing import Optional
-import shutil
 import os
 from tenacity import retry, stop_after_attempt, wait_exponential, retry_if_exception_type
 from google.genai.errors import ServerError
@@ -9,7 +8,13 @@ import asyncio
 
 from app.config import TEMP_FOLDER_NAME
 from app.services.t_shirt.shirt import TShirt
-from app.utils.helper import response_data_img_async, delete_file_async, s3_file_upload_async, delete_file
+from app.utils.helper import (
+    response_data_img_async,
+    delete_file_async,
+    s3_file_upload_async,
+    delete_file,
+    download_image_from_url_async,
+)
 # from app.utils.helper import cloudinary_file_upload  # COMMENTED OUT - USING S3 NOW
 from app.utils.logger import get_logger
 
@@ -30,7 +35,7 @@ router = APIRouter()
 
 @router.post("/generate_merchandise")
 async def generate_merchandise(
-    prompt: str = Form(..., description="Detailed description of the design and style"),
+    prompt: Optional[str] = Form(None, description="Detailed description of the design and style"),
     style: Optional[str]= Form(None, description= "Comic /Cartoon /Minimalist"),
     lighting: Optional[str]= Form(None, description= "Bright day light / Soft light / Golden hour"),
     weatherenv: Optional[str]= Form(None, description="Sunny / Rain/ Fog"),
@@ -43,13 +48,13 @@ async def generate_merchandise(
     compositiontype: Optional[str]= Form(None, description= "Centered / Symmetrical / Asymmetrical"),
     imagequality: Optional[str]= Form(None, description="HD / Low Resulation / Sharp"),
     modificationtype: Optional[str]= Form(None, description="Background Removal / Style Transfer/ Face Enhancement"),
-    product_image: Optional[UploadFile] = File(None, description="Optional product/reference image"),
-    logo_image: Optional[UploadFile] = File(None, description="Optional logo image"),
+    product_image_url: Optional[str] = Form(None, description="Optional product/reference image URL"),
+    logo_image_url: Optional[str] = Form(None, description="Optional logo image URL"),
     background_task : BackgroundTasks = None
 ):
 
     t_shirt = TShirt(
-        prompt=prompt,
+        prompt=prompt or "",
         style=style,
         lighting=lighting,
         weatherenv=weatherenv,
@@ -64,26 +69,26 @@ async def generate_merchandise(
         modificationtype=modificationtype,
     )
 
-    allowed_file_types = ["image/jpeg", "image/png", "image/bmp"]
     product_image_path = None
     logo_image_path = None
 
-    if product_image and product_image.content_type not in allowed_file_types:
-        raise HTTPException(status_code=404, detail = "Only Image file are acceptable.")
-    if logo_image and logo_image.content_type not in allowed_file_types:
-        raise HTTPException(status_code=404, detail = "Only Image file are acceptable.")
-
     try:
-        if product_image or logo_image:
+        if product_image_url or logo_image_url:
             os.makedirs(TEMP_FOLDER_NAME, exist_ok = True)
 
-        if product_image:
-            product_image_path = os.path.join(TEMP_FOLDER_NAME, f"product_{product_image.filename}")
-            await asyncio.to_thread(_save_upload_file, product_image, product_image_path)
+        if product_image_url:
+            product_image_path = await download_image_from_url_async(
+                product_image_url,
+                TEMP_FOLDER_NAME,
+                "product",
+            )
 
-        if logo_image:
-            logo_image_path = os.path.join(TEMP_FOLDER_NAME, f"logo_{logo_image.filename}")
-            await asyncio.to_thread(_save_upload_file, logo_image, logo_image_path)
+        if logo_image_url:
+            logo_image_path = await download_image_from_url_async(
+                logo_image_url,
+                TEMP_FOLDER_NAME,
+                "logo",
+            )
 
         if product_image_path:
             # Design URL should contain only the design asset:
@@ -131,7 +136,7 @@ async def generate_merchandise(
             generated_mockup_url = await s3_file_upload_async(mockup_path)
             print("Mockup Generated.")
 
-        if product_image or logo_image:
+        if product_image_url or logo_image_url:
             if background_task:
                 background_task.add_task(delete_file, TEMP_FOLDER_NAME)
             else:
@@ -145,11 +150,8 @@ async def generate_merchandise(
 
     except FileNotFoundError:
         raise HTTPException(status_code=400, detail = "File not found.")
-
-
-def _save_upload_file(upload_file: UploadFile, destination: str) -> None:
-    with open(destination, "wb") as temp_file:
-        shutil.copyfileobj(upload_file.file, temp_file)
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
 
 
 

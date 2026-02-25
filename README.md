@@ -150,7 +150,8 @@ This project is an AI-powered merchandise design service that allows users to cr
 | Parameter | Type | Required | Description |
 |-----------|------|----------|-------------|
 | `prompt` | string (Form) | ✅ Yes | ডিজাইনের বিস্তারিত বর্ণনা (e.g., "A cool gaming logo with neon colors") |
-| `img_file` | file (File) | ❌ No | অপশনাল লোগো/ইমেজ ফাইল (JPEG, PNG, BMP) |
+| `product_image_url` | string (Form) | ❌ No | অপশনাল প্রোডাক্ট/রেফারেন্স ইমেজ URL (JPEG, PNG, BMP) |
+| `logo_image_url` | string (Form) | ❌ No | অপশনাল লোগো ইমেজ URL (JPEG, PNG, BMP) |
 
 **Request Example**:
 
@@ -158,7 +159,7 @@ This project is an AI-powered merchandise design service that allows users to cr
 curl -X POST "http://127.0.0.1:8000/generate_merchandise" \
   -H "Content-Type: multipart/form-data" \
   -F "prompt=A minimalist coffee mug design with mountain silhouette" \
-  -F "img_file=@/path/to/your/logo.png"
+  -F "logo_image_url=https://example.com/logo.png"
 ```
 
 **Response Example**:
@@ -174,7 +175,7 @@ curl -X POST "http://127.0.0.1:8000/generate_merchandise" \
 - `generated_design_url`: প্রিন্ট-রেডি ডিজাইন ইমেজের AWS S3 URL
 - `mockup_url`: রিয়েলিস্টিক প্রোডাক্ট মকআপের AWS S3 URL
 
-**Supported File Types**:
+**Supported Image URL Types**:
 - `image/jpeg` (.jpg, .jpeg)
 - `image/png` (.png)
 - `image/bmp` (.bmp)
@@ -182,9 +183,9 @@ curl -X POST "http://127.0.0.1:8000/generate_merchandise" \
 **Error Responses**:
 
 ```json
-// Invalid file type
+// Invalid image URL/type
 {
-  "detail": "Only Image file are acceptable."
+  "detail": "Only JPEG, PNG, and BMP image URLs are acceptable."
 }
 
 // File not found
@@ -333,7 +334,7 @@ curl -X POST "http://127.0.0.1:8000/generate_merchandise" \
 ```bash
 curl -X POST "http://127.0.0.1:8000/generate_merchandise" \
   -F "prompt=Professional corporate t-shirt design, minimalist style" \
-  -F "img_file=@company_logo.png"
+  -F "logo_image_url=https://example.com/company_logo.png"
 ```
 
 ### Example 3: Coffee Mug Design
@@ -348,7 +349,7 @@ curl -X POST "http://127.0.0.1:8000/generate_merchandise" \
 ```bash
 curl -X POST "http://127.0.0.1:8000/generate_merchandise" \
   -F "prompt=Ceramic mug design with vintage aesthetic" \
-  -F "img_file=@vintage_logo.png"
+  -F "logo_image_url=https://example.com/vintage_logo.png"
 ```
 
 ### Python Example:
@@ -365,14 +366,12 @@ data = {
 response = requests.post(url, data=data)
 print(response.json())
 
-# With image
-files = {
-    "img_file": open("logo.png", "rb")
-}
+# With image URL
 data = {
-    "prompt": "Modern t-shirt design incorporating the uploaded logo"
+    "prompt": "Modern t-shirt design incorporating the logo",
+    "logo_image_url": "https://example.com/logo.png"
 }
-response = requests.post(url, data=data, files=files)
+response = requests.post(url, data=data)
 print(response.json())
 ```
 
@@ -383,7 +382,7 @@ print(response.json())
 প্রজেক্টে বিভিন্ন লেভেলে error handling implement করা হয়েছে:
 
 ### API Level Errors:
-- Invalid file type → HTTP 404
+- Invalid image URL/type → HTTP 400
 - File not found → HTTP 400
 - General exceptions → HTTP 500
 

@@ -12,6 +12,7 @@ import boto3
 from botocore.exceptions import ClientError
 import uuid
 from datetime import datetime
+from urllib.parse import urlparse
 
 # from app.config import CLOUDINARY_API_KEY, CLOUDINARY_CLOUD_NAME, CLOUDINARY_API_SECRET, GENERATED_IMG_PATH  # COMMENTED OUT
 from app.config import AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY, AWS_REGION, AWS_S3_BUCKET_NAME, GENERATED_IMG_PATH
@@ -30,6 +31,8 @@ s3_client = boto3.client(
     aws_secret_access_key=AWS_SECRET_ACCESS_KEY,
     region_name=AWS_REGION
 )
+
+ALLOWED_IMAGE_MIME_TYPES = {"image/jpeg", "image/png", "image/bmp"}
 
 # COMMENTED OUT CLOUDINARY UPLOAD - USING S3 NOW
 # def cloudinary_file_upload(file_path):
@@ -83,6 +86,37 @@ def upload_image(image_path):
         image_data = image_file.read()
 
     return {"mime_type": mime_type, "data": image_data}
+
+
+def download_image_from_url(image_url, destination_dir, prefix):
+    parsed_url = urlparse(image_url)
+    if parsed_url.scheme not in {"http", "https"}:
+        raise ValueError("Invalid image URL. Only http/https URLs are supported.")
+
+    with requests.get(image_url, stream=True, timeout=20) as response:
+        response.raise_for_status()
+        content_type = response.headers.get("Content-Type", "").split(";")[0].strip().lower()
+        if content_type not in ALLOWED_IMAGE_MIME_TYPES:
+            raise ValueError("Only JPEG, PNG, and BMP image URLs are acceptable.")
+
+        extension_map = {
+            "image/jpeg": ".jpg",
+            "image/png": ".png",
+            "image/bmp": ".bmp",
+        }
+        extension = extension_map.get(content_type, ".img")
+        file_name = f"{prefix}_{uuid.uuid4().hex[:8]}{extension}"
+        file_path = os.path.join(destination_dir, file_name)
+
+        response.raw.decode_content = True
+        with open(file_path, "wb") as temp_file:
+            shutil.copyfileobj(response.raw, temp_file)
+
+    return file_path
+
+
+async def download_image_from_url_async(image_url, destination_dir, prefix):
+    return await asyncio.to_thread(download_image_from_url, image_url, destination_dir, prefix)
 
 def response_data_img(response):
     os.makedirs(GENERATED_IMG_PATH, exist_ok=True)
