@@ -88,12 +88,20 @@ async def generate_merchandise(
         if logo_image:
             content_type = (logo_image.content_type or "").lower()
             if content_type not in ALLOWED_IMAGE_MIME_TYPES:
-                raise ValueError("Only JPEG, PNG, and BMP logo uploads are acceptable.")
+                raise ValueError(
+                    "Only JPEG, PNG, BMP, WEBP, GIF, TIFF, and HEIC logo uploads are acceptable."
+                )
 
             extension_map = {
                 "image/jpeg": ".jpg",
+                "image/jpg": ".jpg",
                 "image/png": ".png",
                 "image/bmp": ".bmp",
+                "image/webp": ".webp",
+                "image/gif": ".gif",
+                "image/tiff": ".tiff",
+                "image/heic": ".heic",
+                "image/heif": ".heif",
             }
             logo_image_path = os.path.join(
                 TEMP_FOLDER_NAME,

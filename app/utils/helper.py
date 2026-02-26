@@ -32,7 +32,17 @@ s3_client = boto3.client(
     region_name=AWS_REGION
 )
 
-ALLOWED_IMAGE_MIME_TYPES = {"image/jpeg", "image/png", "image/bmp"}
+ALLOWED_IMAGE_MIME_TYPES = {
+    "image/jpeg",
+    "image/jpg",
+    "image/png",
+    "image/bmp",
+    "image/webp",
+    "image/gif",
+    "image/tiff",
+    "image/heic",
+    "image/heif",
+}
 
 # COMMENTED OUT CLOUDINARY UPLOAD - USING S3 NOW
 # def cloudinary_file_upload(file_path):
@@ -97,12 +107,20 @@ def download_image_from_url(image_url, destination_dir, prefix):
         response.raise_for_status()
         content_type = response.headers.get("Content-Type", "").split(";")[0].strip().lower()
         if content_type not in ALLOWED_IMAGE_MIME_TYPES:
-            raise ValueError("Only JPEG, PNG, and BMP image URLs are acceptable.")
+            raise ValueError(
+                "Only JPEG, PNG, BMP, WEBP, GIF, TIFF, and HEIC image URLs are acceptable."
+            )
 
         extension_map = {
             "image/jpeg": ".jpg",
+            "image/jpg": ".jpg",
             "image/png": ".png",
             "image/bmp": ".bmp",
+            "image/webp": ".webp",
+            "image/gif": ".gif",
+            "image/tiff": ".tiff",
+            "image/heic": ".heic",
+            "image/heif": ".heif",
         }
         extension = extension_map.get(content_type, ".img")
         file_name = f"{prefix}_{uuid.uuid4().hex[:8]}{extension}"
